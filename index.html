@@ -1,1 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play Request</title>
 
+<style>
+html,body{
+margin:0;
+padding:0;
+overflow:hidden;
+background:#050505;
+font-family:monospace;
+}
+
+canvas{
+display:block;
+width:100vw;
+height:100vh;
+}
+
+#message{
+position:fixed;
+top:20px;
+left:20px;
+color:#7efcff;
+font-size:14px;
+white-space:pre;
+opacity:0;
+transition:0.5s;
+text-shadow:0 0 10px #7efcff;
+}
+
+#ending{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:white;
+text-align:center;
+font-size:clamp(20px,5vw,40px);
+letter-spacing:4px;
+opacity:0;
+transition:2s;
+text-shadow:0 0 20px white;
+}
+
+#title{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:white;
+font-size:clamp(18px,4vw,32px);
+opacity:1;
+transition:2s;
+letter-spacing:3px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="title">
+PLAY WITH ME
+</div>
+
+<div id="message"></div>
+
+<div id="ending">
+PLAY REQUEST<br>
+PENDING...
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+}
+resize();
+window.addEventListener("resize",resize);
+
+const msg=document.getElementById("message");
+const ending=document.getElementById("ending");
+const title=document.getElementById("title");
+
+const start=Date.now();
+
+const particles=[];
+
+for(let i=0;i<100;i++){
+particles.push({
+x:Math.random()*innerWidth,
+y:Math.random()*innerHeight,
+s:Math.random()*2+1
+});
+}
+
+function draw(){
+
+let t=(Date.now()-start)/1000;
+
+ctx.fillStyle="rgba(0,0,0,0.15)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+particles.forEach(p=>{
+ctx.fillStyle="rgba(255,255,255,0.3)";
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.s,0,Math.PI*2);
+ctx.fill();
+
+p.y-=0.15;
+
+if(p.y<0){
+p.y=canvas.height;
+p.x=Math.random()*canvas.width;
+}
+});
+
+if(t>3){
+title.style.opacity=0;
+}
+
+let humanX=canvas.width*0.2;
+let robotX=canvas.width*0.8;
+
+if(t<20){
+let move=Math.sin(t*0.8)*120;
+humanX+=move;
+robotX-=move;
+}
+
+if(t>=20){
+let move=Math.sin(t*1.2)*180;
+humanX+=move;
+robotX-=move;
+}
+
+let y=canvas.height/2;
+
+ctx.strokeStyle="#ffffff";
+ctx.lineWidth=4;
+
+ctx.beginPath();
+ctx.arc(humanX,y,30,0,Math.PI*2);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(humanX,y+30);
+ctx.lineTo(humanX,y+100);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(humanX-30,y+60);
+ctx.lineTo(humanX+30,y+60);
+ctx.stroke();
+
+ctx.strokeStyle="#7efcff";
+
+ctx.strokeRect(robotX-30,y-30,60,60);
+
+ctx.beginPath();
+ctx.moveTo(robotX,y+30);
+ctx.lineTo(robotX,y+100);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(robotX-30,y+60);
+ctx.lineTo(robotX+30,y+60);
+ctx.stroke();
+
+let d=robotX-humanX;
+
+if(d<220 && t<25){
+msg.style.opacity=1;
+msg.innerText=
+`HUMAN DETECTED
+
+SAFE DISTANCE MODE`;
+}
+
+if(t>25 && t<45){
+msg.style.opacity=1;
+msg.innerText=
+`PLAY_PROTOCOL ERROR
+
+FRIEND_PROTOCOL UNKNOWN
+
+EMOTION UNDEFINED`;
+}
+
+if(t>40){
+
+ctx.strokeStyle="white";
+ctx.beginPath();
+ctx.moveTo(humanX+35,y);
+ctx.lineTo(canvas.width/2-15,y);
+ctx.stroke();
+
+ctx.strokeStyle="#7efcff";
+ctx.beginPath();
+ctx.moveTo(robotX-35,y);
+ctx.lineTo(canvas.width/2+15,y);
+ctx.stroke();
+}
+
+if(t>52){
+
+let fade=Math.max(0,1-(t-52)/8);
+
+ctx.strokeStyle=`rgba(255,255,255,${fade})`;
+
+ctx.beginPath();
+ctx.arc(humanX,y,30,0,Math.PI*2);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(humanX,y+30);
+ctx.lineTo(humanX,y+100);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(humanX-30,y+60);
+ctx.lineTo(humanX+30,y+60);
+ctx.stroke();
+}
+
+if(t>60){
+msg.style.opacity=0;
+ending.style.opacity=1;
+}
+
+requestAnimationFrame(draw);
+
+}
+
+draw();
+
+</script>
+
+</body>
+</html>
