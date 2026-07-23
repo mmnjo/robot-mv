@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ANDROID ONLINE</title>
+<title>ANDROID CHASE</title>
 
 <style>
 html,body{
 margin:0;
-width:100%;
-height:100%;
 overflow:hidden;
-background:#000;
+background:#050505;
 font-family:monospace;
+height:100%;
 }
 
 canvas{
@@ -20,37 +19,28 @@ position:fixed;
 inset:0;
 }
 
-#android{
+#android,#mona{
 position:absolute;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-color:#7fffd4;
 white-space:pre;
-font-size:min(2vw,18px);
-text-shadow:
-0 0 10px #7fffd4,
-0 0 20px #7fffd4;
 z-index:10;
-pointer-events:none;
+}
+
+#android{
+color:#7fffd4;
+font-size:18px;
+text-shadow:0 0 10px #7fffd4;
+}
+
+#mona{
+color:white;
+font-size:24px;
 }
 
 .word{
 position:absolute;
-color:white;
-font-size:14px;
-pointer-events:none;
-opacity:0.8;
-white-space:nowrap;
-}
-
-#status{
-position:absolute;
-left:20px;
-top:20px;
 color:#7fffd4;
-font-size:12px;
-opacity:0.8;
+opacity:.6;
+pointer-events:none;
 }
 </style>
 </head>
@@ -59,14 +49,123 @@ opacity:0.8;
 
 <canvas id="bg"></canvas>
 
-<div id="status">
-ANDROID ONLINE<br>
-SEARCHING FOR FRIEND...
-</div>
+<div id="mona">(･∀･)</div>
 
 <div id="android"></div>
 
 <script>
+
+const android=document.getElementById("android");
+const mona=document.getElementById("mona");
+
+const screens=[
+"HELLO",
+"PLAY?",
+"ONLINE",
+"FRIEND?",
+"ERROR",
+"CONNECT"
+];
+
+let screenIndex=0;
+
+setInterval(()=>{
+screenIndex=(screenIndex+1)%screens.length;
+
+android.textContent=
+`╔════════╗
+║ ${screens[screenIndex].padEnd(7," ")}║
+║ ◉    ◉ ║
+╚════════╝
+    ║║
+ ╔══╩══╗
+ ║     ║
+ ╚═════╝`;
+},1200);
+
+let monaX=50;
+let dir=1;
+
+function animate(){
+
+monaX+=dir*2;
+
+if(monaX>window.innerWidth*0.7){
+dir=-1;
+}
+
+if(monaX<50){
+dir=1;
+}
+
+const androidX=monaX+220;
+
+mona.style.left=monaX+"px";
+mona.style.top=
+(window.innerHeight*0.65+
+Math.sin(Date.now()/300)*10)+"px";
+
+android.style.left=androidX+"px";
+android.style.top=
+(window.innerHeight*0.45+
+Math.sin(Date.now()/500)*20)+"px";
+
+requestAnimationFrame(animate);
+}
+
+animate();
+
+const words=[
+"HELLO",
+"PLAY",
+"FRIEND",
+"ONLINE",
+"(´･ω･`)",
+"(・∀・)",
+"CONNECT"
+];
+
+function spawnWord(){
+
+const el=document.createElement("div");
+
+el.className="word";
+
+el.textContent=
+words[Math.floor(Math.random()*words.length)];
+
+el.style.left=
+Math.random()*window.innerWidth+"px";
+
+el.style.top=
+Math.random()*window.innerHeight+"px";
+
+document.body.appendChild(el);
+
+let life=0;
+
+const timer=setInterval(()=>{
+
+life++;
+
+el.style.transform=
+`translateY(${-life}px)`;
+
+el.style.opacity=
+1-life/150;
+
+if(life>150){
+
+clearInterval(timer);
+el.remove();
+
+}
+
+},16);
+
+}
+
+setInterval(spawnWord,250);
 
 const canvas=document.getElementById("bg");
 const ctx=canvas.getContext("2d");
@@ -75,22 +174,26 @@ function resize(){
 canvas.width=innerWidth;
 canvas.height=innerHeight;
 }
+
 resize();
-addEventListener("resize",resize);
+
+window.addEventListener("resize",resize);
 
 const stars=[];
 
-for(let i=0;i<250;i++){
+for(let i=0;i<200;i++){
+
 stars.push({
 x:Math.random()*innerWidth,
 y:Math.random()*innerHeight,
-s:Math.random()*2
+s:Math.random()*2+1
 });
+
 }
 
-function drawStars(){
+function drawBg(){
 
-ctx.fillStyle="rgba(0,0,0,0.15)";
+ctx.fillStyle="rgba(0,0,0,0.2)";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 
 ctx.fillStyle="#7fffd4";
@@ -102,106 +205,19 @@ ctx.fillRect(star.x,star.y,star.s,star.s);
 star.y+=star.s*0.5;
 
 if(star.y>innerHeight){
+
 star.y=0;
 star.x=Math.random()*innerWidth;
-}
-
-}
-}
-
-const android=document.getElementById("android");
-
-const frame1=`
-        _____
-      /  ◉ ◉  \\
-     |    ▽    |
-     |  _____  |
-      \\_______/
-
-        /|__|\\
-       /_|__|_\\
-`;
-
-const frame2=`
-        _____
-      /  - -  \\
-     |    ▽    |
-     |  _____  |
-      \\_______/
-
-        /|__|\\
-       /_|__|_\\
-`;
-
-let blink=false;
-
-setInterval(()=>{
-blink=!blink;
-android.textContent=blink ? frame1 : frame2;
-},800);
-
-const words=[
-"HELLO",
-"PLAY",
-"FRIEND",
-"ANDROID",
-"ONLINE",
-"(´･ω･`)",
-"(・∀・)",
-"★",
-"LOVE",
-"CONNECT"
-];
-
-function spawnWord(){
-
-const el=document.createElement("div");
-el.className="word";
-
-el.textContent=
-words[Math.floor(Math.random()*words.length)];
-
-el.style.left=Math.random()*innerWidth+"px";
-el.style.top=Math.random()*innerHeight+"px";
-
-document.body.appendChild(el);
-
-let life=0;
-
-const timer=setInterval(()=>{
-
-life++;
-
-el.style.opacity=1-life/200;
-el.style.transform=
-`translateY(${-life}px)`;
-
-if(life>200){
-clearInterval(timer);
-el.remove();
-}
-
-},16);
 
 }
 
-setInterval(spawnWord,300);
+}
 
-function loop(){
-
-drawStars();
-
-const y=
-innerHeight/2+
-Math.sin(Date.now()/700)*30;
-
-android.style.top=y+"px";
-
-requestAnimationFrame(loop);
+requestAnimationFrame(drawBg);
 
 }
 
-loop();
+drawBg();
 
 </script>
 
