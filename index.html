@@ -3,147 +3,205 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>robot_bbs</title>
+<title>ANDROID ONLINE</title>
 
 <style>
-body{
-    margin:0;
-    background:black;
-    color:#00ff66;
-    font-family:monospace;
-    overflow:hidden;
+html,body{
+margin:0;
+width:100%;
+height:100%;
+overflow:hidden;
+background:#000;
+font-family:monospace;
 }
 
-#screen{
-    white-space:pre;
-    padding:20px;
-    font-size:min(2vw,16px);
-    line-height:1.2;
+canvas{
+position:fixed;
+inset:0;
 }
 
-.glitch{
-    animation:glitch 0.1s infinite;
+#android{
+position:absolute;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+color:#7fffd4;
+white-space:pre;
+font-size:min(2vw,18px);
+text-shadow:
+0 0 10px #7fffd4,
+0 0 20px #7fffd4;
+z-index:10;
+pointer-events:none;
 }
 
-@keyframes glitch{
-    0%{transform:translate(0px);}
-    50%{transform:translate(1px);}
-    100%{transform:translate(-1px);}
+.word{
+position:absolute;
+color:white;
+font-size:14px;
+pointer-events:none;
+opacity:0.8;
+white-space:nowrap;
+}
+
+#status{
+position:absolute;
+left:20px;
+top:20px;
+color:#7fffd4;
+font-size:12px;
+opacity:0.8;
 }
 </style>
 </head>
 
 <body>
 
-<div id="screen"></div>
+<canvas id="bg"></canvas>
+
+<div id="status">
+ANDROID ONLINE<br>
+SEARCHING FOR FRIEND...
+</div>
+
+<div id="android"></div>
 
 <script>
 
-const screen=document.getElementById("screen");
+const canvas=document.getElementById("bg");
+const ctx=canvas.getContext("2d");
 
-const scenes=[
+function resize(){
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+}
+resize();
+addEventListener("resize",resize);
 
-`Anonymous BBS v2.03
+const stars=[];
 
-connecting...
+for(let i=0;i<250;i++){
+stars.push({
+x:Math.random()*innerWidth,
+y:Math.random()*innerHeight,
+s:Math.random()*2
+});
+}
 
-`,
+function drawStars(){
 
-`[1] ロボットと遊びたい
+ctx.fillStyle="rgba(0,0,0,0.15)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
 
-(´･ω･`,
+ctx.fillStyle="#7fffd4";
 
-`[2]
-無理だろ
+for(const star of stars){
 
-`,
+ctx.fillRect(star.x,star.y,star.s,star.s);
 
-`[3]
+star.y+=star.s*0.5;
 
-      _____
-    /       \\
-   |  o   o  |
-   |    ▽    |
-    \\_______/
+if(star.y>innerHeight){
+star.y=0;
+star.x=Math.random()*innerWidth;
+}
 
-      ROBOT
+}
+}
 
-`,
+const android=document.getElementById("android");
 
-`[4]
+const frame1=`
+        _____
+      /  ◉ ◉  \\
+     |    ▽    |
+     |  _____  |
+      \\_______/
 
-HELLO
+        /|__|\\
+       /_|__|_\\
+`;
 
-`,
+const frame2=`
+        _____
+      /  - -  \\
+     |    ▽    |
+     |  _____  |
+      \\_______/
 
-`[5]
+        /|__|\\
+       /_|__|_\\
+`;
 
-PLAY?
+let blink=false;
 
-`,
+setInterval(()=>{
+blink=!blink;
+android.textContent=blink ? frame1 : frame2;
+},800);
 
-`[6]
-
-PLAY...
-
-`,
-
-`[7]
-
-ERROR
-
-ERROR
-
-ERROR
-
-`,
-
-`[8]
-
-( ; _ ; )
-
-`,
-
-`[9]
-
-FRIEND?
-
-`,
-
-`[10]
-
-      _____
-    / ^   ^ \\
-   |  •   •  |
-   |    ▽    |
-    \\_______/
-
-HELLO FRIEND
-
-`
+const words=[
+"HELLO",
+"PLAY",
+"FRIEND",
+"ANDROID",
+"ONLINE",
+"(´･ω･`)",
+"(・∀・)",
+"★",
+"LOVE",
+"CONNECT"
 ];
 
-let index=0;
+function spawnWord(){
 
-function nextScene(){
+const el=document.createElement("div");
+el.className="word";
 
-screen.innerText=scenes[index];
+el.textContent=
+words[Math.floor(Math.random()*words.length)];
 
-if(index===7){
-screen.classList.add("glitch");
-}else{
-screen.classList.remove("glitch");
+el.style.left=Math.random()*innerWidth+"px";
+el.style.top=Math.random()*innerHeight+"px";
+
+document.body.appendChild(el);
+
+let life=0;
+
+const timer=setInterval(()=>{
+
+life++;
+
+el.style.opacity=1-life/200;
+el.style.transform=
+`translateY(${-life}px)`;
+
+if(life>200){
+clearInterval(timer);
+el.remove();
 }
 
-index++;
-
-if(index<scenes.length){
-setTimeout(nextScene,3000);
-}
+},16);
 
 }
 
-nextScene();
+setInterval(spawnWord,300);
+
+function loop(){
+
+drawStars();
+
+const y=
+innerHeight/2+
+Math.sin(Date.now()/700)*30;
+
+android.style.top=y+"px";
+
+requestAnimationFrame(loop);
+
+}
+
+loop();
 
 </script>
 
