@@ -2,222 +2,185 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ANDROID CHASE</title>
-
+<title>Android Chase MV Game</title>
 <style>
-html,body{
-margin:0;
-overflow:hidden;
-background:#050505;
-font-family:monospace;
-height:100%;
+body {
+  margin: 0;
+  background: #111;
+  overflow: hidden;
 }
 
-canvas{
-position:fixed;
-inset:0;
-}
-
-#android,#mona{
-position:absolute;
-white-space:pre;
-z-index:10;
-}
-
-#android{
-color:#7fffd4;
-font-size:18px;
-text-shadow:0 0 10px #7fffd4;
-}
-
-#mona{
-color:white;
-font-size:24px;
-}
-
-.word{
-position:absolute;
-color:#7fffd4;
-opacity:.6;
-pointer-events:none;
+canvas {
+  display: block;
+  margin: auto;
+  background: #222;
+  image-rendering: pixelated;
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="bg"></canvas>
-
-<div id="mona">(･∀･)</div>
-
-<div id="android"></div>
+<canvas id="game" width="800" height="450"></canvas>
 
 <script>
 
-const android=document.getElementById("android");
-const mona=document.getElementById("mona");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-const screens=[
-"HELLO",
-"PLAY?",
-"ONLINE",
-"FRIEND?",
-"ERROR",
-"CONNECT"
-];
+let player = {
+  x:150,
+  y:350,
+  size:35,
+  speed:5
+};
 
-let screenIndex=0;
+let android = {
+  x:650,
+  y:340,
+  size:55,
+  speed:1.2
+};
 
-setInterval(()=>{
-screenIndex=(screenIndex+1)%screens.length;
+let keys = {};
 
-android.textContent=
-`╔════════╗
-║ ${screens[screenIndex].padEnd(7," ")}║
-║ ◉    ◉ ║
-╚════════╝
-    ║║
- ╔══╩══╗
- ║     ║
- ╚═════╝`;
-},1200);
-
-let monaX=50;
-let dir=1;
-
-function animate(){
-
-monaX+=dir*2;
-
-if(monaX>window.innerWidth*0.7){
-dir=-1;
-}
-
-if(monaX<50){
-dir=1;
-}
-
-const androidX=monaX+220;
-
-mona.style.left=monaX+"px";
-mona.style.top=
-(window.innerHeight*0.65+
-Math.sin(Date.now()/300)*10)+"px";
-
-android.style.left=androidX+"px";
-android.style.top=
-(window.innerHeight*0.45+
-Math.sin(Date.now()/500)*20)+"px";
-
-requestAnimationFrame(animate);
-}
-
-animate();
-
-const words=[
-"HELLO",
-"PLAY",
-"FRIEND",
-"ONLINE",
-"(´･ω･`)",
-"(・∀・)",
-"CONNECT"
-];
-
-function spawnWord(){
-
-const el=document.createElement("div");
-
-el.className="word";
-
-el.textContent=
-words[Math.floor(Math.random()*words.length)];
-
-el.style.left=
-Math.random()*window.innerWidth+"px";
-
-el.style.top=
-Math.random()*window.innerHeight+"px";
-
-document.body.appendChild(el);
-
-let life=0;
-
-const timer=setInterval(()=>{
-
-life++;
-
-el.style.transform=
-`translateY(${-life}px)`;
-
-el.style.opacity=
-1-life/150;
-
-if(life>150){
-
-clearInterval(timer);
-el.remove();
-
-}
-
-},16);
-
-}
-
-setInterval(spawnWord,250);
-
-const canvas=document.getElementById("bg");
-const ctx=canvas.getContext("2d");
-
-function resize(){
-canvas.width=innerWidth;
-canvas.height=innerHeight;
-}
-
-resize();
-
-window.addEventListener("resize",resize);
-
-const stars=[];
-
-for(let i=0;i<200;i++){
-
-stars.push({
-x:Math.random()*innerWidth,
-y:Math.random()*innerHeight,
-s:Math.random()*2+1
+document.addEventListener("keydown", e=>{
+  keys[e.key]=true;
 });
 
+document.addEventListener("keyup", e=>{
+  keys[e.key]=false;
+});
+
+
+function drawPlayer(){
+  ctx.fillStyle="#eee";
+
+  // モナー風の丸い体
+  ctx.beginPath();
+  ctx.arc(
+    player.x,
+    player.y,
+    player.size/2,
+    0,
+    Math.PI*2
+  );
+  ctx.fill();
+
+  // 顔
+  ctx.fillStyle="#222";
+  ctx.beginPath();
+  ctx.arc(player.x-8,player.y-5,4,0,Math.PI*2);
+  ctx.arc(player.x+8,player.y-5,4,0,Math.PI*2);
+  ctx.fill();
 }
 
-function drawBg(){
 
-ctx.fillStyle="rgba(0,0,0,0.2)";
-ctx.fillRect(0,0,canvas.width,canvas.height);
+function drawAndroid(){
 
-ctx.fillStyle="#7fffd4";
+  // 四角いブラウン管
+  ctx.fillStyle="#b6a48b";
 
-for(const star of stars){
+  ctx.beginPath();
+  ctx.roundRect(
+    android.x,
+    android.y,
+    android.size,
+    android.size,
+    10
+  );
+  ctx.fill();
 
-ctx.fillRect(star.x,star.y,star.s,star.s);
 
-star.y+=star.s*0.5;
+  // 画面
+  ctx.fillStyle="#222";
+  ctx.fillRect(
+    android.x+10,
+    android.y+10,
+    android.size-20,
+    android.size-20
+  );
 
-if(star.y>innerHeight){
 
-star.y=0;
-star.x=Math.random()*innerWidth;
+  // 目2つだけ
+  ctx.fillStyle="white";
+
+  ctx.beginPath();
+  ctx.arc(
+    android.x+22,
+    android.y+27,
+    5,
+    0,
+    Math.PI*2
+  );
+
+  ctx.arc(
+    android.x+35,
+    android.y+27,
+    5,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+}
+
+
+function update(){
+
+  // プレイヤー移動
+  if(keys["ArrowRight"])
+    player.x+=player.speed;
+
+  if(keys["ArrowLeft"])
+    player.x-=player.speed;
+
+
+  // アンドロイド追跡
+  if(android.x > player.x)
+    android.x-=android.speed;
+  else
+    android.x+=android.speed;
+
+
+  // 画面外制限
+  player.x=Math.max(20,Math.min(780,player.x));
+
+
+  // 接触
+  if(Math.abs(android.x-player.x)<40){
+    alert("つかまった！");
+    location.reload();
+  }
 
 }
 
+
+function loop(){
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+
+  // 床
+  ctx.fillStyle="#333";
+  ctx.fillRect(0,390,800,60);
+
+
+  update();
+  drawPlayer();
+  drawAndroid();
+
+
+  requestAnimationFrame(loop);
 }
 
-requestAnimationFrame(drawBg);
 
-}
-
-drawBg();
+loop();
 
 </script>
 
