@@ -2,291 +2,200 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Android Chase MV</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANDROID ONLINE</title>
 
 <style>
-body {
-  margin:0;
-  background:#111;
-  overflow:hidden;
+html,body{
+margin:0;
+width:100%;
+height:100%;
+overflow:hidden;
+background:#000;
+font-family:monospace;
 }
 
-canvas {
-  display:block;
-  margin:auto;
-  background:#222;
-  image-rendering:pixelated;
+canvas{
+position:fixed;
+inset:0;
+}
+
+#android{
+position:absolute;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+color:#7fffd4;
+white-space:pre;
+font-size:min(2vw,18px);
+text-shadow:
+0 0 10px #7fffd4,
+0 0 20px #7fffd4;
+z-index:10;
+pointer-events:none;
+}
+
+.word{
+position:absolute;
+color:white;
+font-size:14px;
+pointer-events:none;
+opacity:0.8;
+white-space:nowrap;
+}
+
+#status{
+position:absolute;
+left:20px;
+top:20px;
+color:#7fffd4;
+font-size:12px;
+opacity:0.8;
 }
 </style>
-
 </head>
 
 <body>
 
-<canvas id="game" width="800" height="450"></canvas>
+<canvas id="bg"></canvas>
+
+<div id="status">
+ANDROID ONLINE<br>
+SEARCHING FOR FRIEND...
+</div>
+
+<div id="android"></div>
 
 <script>
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("bg");
+const ctx=canvas.getContext("2d");
 
+function resize(){
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+}
+resize();
+addEventListener("resize",resize);
 
-let player = {
-  x:120,
-  y:330,
-  speed:5,
-  stamina:100,
-  tired:false
-};
+const stars=[];
 
-
-let android = {
-  x:600,
-  y:320,
-  speed:1.5
-};
-
-
-let keys={};
-
-
-document.addEventListener("keydown", e=>{
-  keys[e.key]=true;
+for(let i=0;i<250;i++){
+stars.push({
+x:Math.random()*innerWidth,
+y:Math.random()*innerHeight,
+s:Math.random()*2
 });
+}
 
+function drawStars(){
 
-document.addEventListener("keyup", e=>{
-  keys[e.key]=false;
-});
+ctx.fillStyle="rgba(0,0,0,0.15)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
 
+ctx.fillStyle="#7fffd4";
 
+for(const star of stars){
 
-// 主人公
-function drawPlayer(){
+ctx.fillRect(star.x,star.y,star.s,star.s);
 
-  // 疲れると少し下がる
-  let offset = player.tired ? 5 : 0;
+star.y+=star.s*0.5;
 
+if(star.y>innerHeight){
+star.y=0;
+star.x=Math.random()*innerWidth;
+}
 
-  ctx.fillStyle="#eeeeee";
+}
+}
 
-  ctx.beginPath();
-  ctx.arc(
-    player.x,
-    player.y+offset,
-    25,
-    0,
-    Math.PI*2
-  );
-  ctx.fill();
+const android=document.getElementById("android");
 
+const frame1=`
+        _____
+      /  ◉ ◉  \\
+     |    ▽    |
+      \\_______/
 
-  // 目
-  ctx.fillStyle="#222";
+ 
 
-  ctx.beginPath();
+const frame2=`
+        _____
+      /  - -  \\
+     |    ▽    |
+      \\_______/
 
-  ctx.arc(
-    player.x-9,
-    player.y-5+offset,
-    4,
-    0,
-    Math.PI*2
-  );
+ 
 
-  ctx.arc(
-    player.x+9,
-    player.y-5+offset,
-    4,
-    0,
-    Math.PI*2
-  );
+let blink=false;
 
-  ctx.fill();
+setInterval(()=>{
+blink=!blink;
+android.textContent=blink ? frame1 : frame2;
+},800);
 
+const words=[
+"HELLO",
+"PLAY",
+"FRIEND",
+"ANDROID",
+"ONLINE",
+"(´･ω･`)",
+"(・∀・)",
+"★",
+"LOVE",
+"CONNECT"
+];
 
-  // 疲労表現
-  if(player.tired){
+function spawnWord(){
 
-    ctx.fillStyle="white";
-    ctx.font="18px sans-serif";
-    ctx.fillText(
-      "ハァ…",
-      player.x-20,
-      player.y-45
-    );
+const el=document.createElement("div");
+el.className="word";
 
+el.textContent=
+words[Math.floor(Math.random()*words.length)];
 
-    // 汗
-    ctx.fillStyle="#6cf";
+el.style.left=Math.random()*innerWidth+"px";
+el.style.top=Math.random()*innerHeight+"px";
 
-    ctx.beginPath();
-    ctx.arc(
-      player.x+25,
-      player.y-15,
-      5,
-      0,
-      Math.PI*2
-    );
-    ctx.fill();
+document.body.appendChild(el);
 
-  }
+let life=0;
+
+const timer=setInterval(()=>{
+
+life++;
+
+el.style.opacity=1-life/200;
+el.style.transform=
+`translateY(${-life}px)`;
+
+if(life>200){
+clearInterval(timer);
+el.remove();
+}
+
+},16);
 
 }
 
-
-
-// アンドロイド
-function drawAndroid(){
-
-  // 本体
-  ctx.fillStyle="#b59f82";
-
-  ctx.beginPath();
-
-  ctx.roundRect(
-    android.x,
-    android.y,
-    55,
-    55,
-    12
-  );
-
-  ctx.fill();
-
-
-  // ブラウン管画面
-  ctx.fillStyle="#222";
-
-  ctx.fillRect(
-    android.x+10,
-    android.y+10,
-    35,
-    35
-  );
-
-
-  // 目2つだけ
-  ctx.fillStyle="white";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    android.x+22,
-    android.y+27,
-    5,
-    0,
-    Math.PI*2
-  );
-
-  ctx.arc(
-    android.x+35,
-    android.y+27,
-    5,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-}
-
-
-
-// 更新
-function update(){
-
-
-  // 主人公が追う
-  if(keys["ArrowRight"]){
-
-    player.x += player.speed;
-
-    player.stamina -= 0.15;
-
-  }
-
-
-  // 疲労
-  if(player.stamina < 50){
-
-    player.tired=true;
-    player.speed=3;
-
-  }
-
-
-  if(player.stamina < 20){
-
-    player.speed=1.8;
-
-  }
-
-
-
-  // アンドロイドは逃げる
-  android.x += android.speed;
-
-
-
-  // 画面外へ行ったらループ
-  if(android.x > 850){
-
-    android.x=-100;
-
-  }
-
-
-
-  // 追いついた
-  if(player.x > android.x-30){
-
-    alert("アンドロイドに追いついた！");
-    location.reload();
-
-  }
-
-
-
-}
-
-
-
+setInterval(spawnWord,300);
 
 function loop(){
 
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+drawStars();
 
+const y=
+innerHeight/2+
+Math.sin(Date.now()/700)*30;
 
-  // 地面
-  ctx.fillStyle="#333";
-  ctx.fillRect(
-    0,
-    380,
-    800,
-    70
-  );
+android.style.top=y+"px";
 
-
-  update();
-
-  drawPlayer();
-
-  drawAndroid();
-
-
-  requestAnimationFrame(loop);
+requestAnimationFrame(loop);
 
 }
 
-
 loop();
-
 
 </script>
 
