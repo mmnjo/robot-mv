@@ -2,21 +2,23 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Android Chase MV Game</title>
+<title>Android Chase MV</title>
+
 <style>
 body {
-  margin: 0;
-  background: #111;
-  overflow: hidden;
+  margin:0;
+  background:#111;
+  overflow:hidden;
 }
 
 canvas {
-  display: block;
-  margin: auto;
-  background: #222;
-  image-rendering: pixelated;
+  display:block;
+  margin:auto;
+  background:#222;
+  image-rendering:pixelated;
 }
 </style>
+
 </head>
 
 <body>
@@ -28,77 +30,139 @@ canvas {
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+
 let player = {
-  x:150,
-  y:350,
-  size:35,
-  speed:5
+  x:120,
+  y:330,
+  speed:5,
+  stamina:100,
+  tired:false
 };
+
 
 let android = {
-  x:650,
-  y:340,
-  size:55,
-  speed:1.2
+  x:600,
+  y:320,
+  speed:1.5
 };
 
-let keys = {};
+
+let keys={};
+
 
 document.addEventListener("keydown", e=>{
   keys[e.key]=true;
 });
+
 
 document.addEventListener("keyup", e=>{
   keys[e.key]=false;
 });
 
 
-function drawPlayer(){
-  ctx.fillStyle="#eee";
 
-  // モナー風の丸い体
+// 主人公
+function drawPlayer(){
+
+  // 疲れると少し下がる
+  let offset = player.tired ? 5 : 0;
+
+
+  ctx.fillStyle="#eeeeee";
+
   ctx.beginPath();
   ctx.arc(
     player.x,
-    player.y,
-    player.size/2,
+    player.y+offset,
+    25,
     0,
     Math.PI*2
   );
   ctx.fill();
 
-  // 顔
+
+  // 目
   ctx.fillStyle="#222";
+
   ctx.beginPath();
-  ctx.arc(player.x-8,player.y-5,4,0,Math.PI*2);
-  ctx.arc(player.x+8,player.y-5,4,0,Math.PI*2);
+
+  ctx.arc(
+    player.x-9,
+    player.y-5+offset,
+    4,
+    0,
+    Math.PI*2
+  );
+
+  ctx.arc(
+    player.x+9,
+    player.y-5+offset,
+    4,
+    0,
+    Math.PI*2
+  );
+
   ctx.fill();
+
+
+  // 疲労表現
+  if(player.tired){
+
+    ctx.fillStyle="white";
+    ctx.font="18px sans-serif";
+    ctx.fillText(
+      "ハァ…",
+      player.x-20,
+      player.y-45
+    );
+
+
+    // 汗
+    ctx.fillStyle="#6cf";
+
+    ctx.beginPath();
+    ctx.arc(
+      player.x+25,
+      player.y-15,
+      5,
+      0,
+      Math.PI*2
+    );
+    ctx.fill();
+
+  }
+
 }
 
 
+
+// アンドロイド
 function drawAndroid(){
 
-  // 四角いブラウン管
-  ctx.fillStyle="#b6a48b";
+  // 本体
+  ctx.fillStyle="#b59f82";
 
   ctx.beginPath();
+
   ctx.roundRect(
     android.x,
     android.y,
-    android.size,
-    android.size,
-    10
+    55,
+    55,
+    12
   );
+
   ctx.fill();
 
 
-  // 画面
+  // ブラウン管画面
   ctx.fillStyle="#222";
+
   ctx.fillRect(
     android.x+10,
     android.y+10,
-    android.size-20,
-    android.size-20
+    35,
+    35
   );
 
 
@@ -106,6 +170,7 @@ function drawAndroid(){
   ctx.fillStyle="white";
 
   ctx.beginPath();
+
   ctx.arc(
     android.x+22,
     android.y+27,
@@ -123,37 +188,69 @@ function drawAndroid(){
   );
 
   ctx.fill();
+
 }
 
 
+
+// 更新
 function update(){
 
-  // プレイヤー移動
-  if(keys["ArrowRight"])
-    player.x+=player.speed;
 
-  if(keys["ArrowLeft"])
-    player.x-=player.speed;
+  // 主人公が追う
+  if(keys["ArrowRight"]){
 
+    player.x += player.speed;
 
-  // アンドロイド追跡
-  if(android.x > player.x)
-    android.x-=android.speed;
-  else
-    android.x+=android.speed;
+    player.stamina -= 0.15;
 
-
-  // 画面外制限
-  player.x=Math.max(20,Math.min(780,player.x));
-
-
-  // 接触
-  if(Math.abs(android.x-player.x)<40){
-    alert("つかまった！");
-    location.reload();
   }
 
+
+  // 疲労
+  if(player.stamina < 50){
+
+    player.tired=true;
+    player.speed=3;
+
+  }
+
+
+  if(player.stamina < 20){
+
+    player.speed=1.8;
+
+  }
+
+
+
+  // アンドロイドは逃げる
+  android.x += android.speed;
+
+
+
+  // 画面外へ行ったらループ
+  if(android.x > 850){
+
+    android.x=-100;
+
+  }
+
+
+
+  // 追いついた
+  if(player.x > android.x-30){
+
+    alert("アンドロイドに追いついた！");
+    location.reload();
+
+  }
+
+
+
 }
+
+
 
 
 function loop(){
@@ -166,21 +263,30 @@ function loop(){
   );
 
 
-  // 床
+  // 地面
   ctx.fillStyle="#333";
-  ctx.fillRect(0,390,800,60);
+  ctx.fillRect(
+    0,
+    380,
+    800,
+    70
+  );
 
 
   update();
+
   drawPlayer();
+
   drawAndroid();
 
 
   requestAnimationFrame(loop);
+
 }
 
 
 loop();
+
 
 </script>
 
